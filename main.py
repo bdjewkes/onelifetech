@@ -1,11 +1,40 @@
 import sys
-print(sys.path)
-from os import path
-from onelifetech import parser, config
+import os
 
-game_data = parser.get_all_game_data(config.GAME_DIR)
+from jsonpickle import encode, set_encoder_options
 
-for cat_id, cat in game_data.categories.items():
-    print("Next Category " + str(cat_id))
-    for obj_id in cat.ids:
-        print(game_data.objects[obj_id].name)
+from gamedata import parser, config
+
+
+def describe_categories(data):
+    for cat_id, cat in data.categories.items():
+        print("Next Category " + str(cat_id))
+        for obj_id in cat.ids:
+            print(data.objects[obj_id].name)
+
+
+def write_game_data(game_data):
+    def write_output(data, name):
+        with open(os.path.join('output', '{}.json'.format(name)), "w") as f:
+            f.write(encode(data))
+        
+
+    if not os.path.exists('output'):
+        os.makedirs('output')
+    set_encoder_options('simplejson', sort_keys=True, indent=4)
+    write_output(game_data.objects, "objects")
+    write_output(game_data.categories, "categories")
+
+def get_objects_with_stat(objects, stat):
+    return [obj for _, obj in objects.items() if hasattr(obj, stat)]
+        
+    
+    for id, obj in objects.items():
+        if hasattr(obj, stat):
+            objs.push(obj)
+    
+
+if __name__ == "__main__":
+    game_data = parser.get_all_game_data(config.GAME_DIR)
+    write_game_data(game_data)
+
