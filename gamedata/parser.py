@@ -16,12 +16,12 @@ class GameData:
         self.transitions=trans
 
 def get_all_game_data(dir):
-    def get_data_of_type(type, parser):
-        return get_data_from_directory(os.path.join(dir, type), parser)
+    def get_data_of_type(type, parser, qualifier):
+        return get_data_from_directory(os.path.join(dir, type), parser, qualifier)
 
-    objects = get_data_of_type("objects", object_parser)
-    categories = get_data_of_type("categories", category_parser)
-    transitions = get_data_of_type("transitions", transition_parser)
+    objects = get_data_of_type("objects", object_parser, is_game_data)
+    categories = get_data_of_type("categories", category_parser, is_game_data)
+    transitions = get_data_of_type("transitions", transition_parser, is_transition)
     return GameData(
         objs = { x.id:x for x in objects },
         cats = { x.id:x for x in categories },
@@ -29,10 +29,11 @@ def get_all_game_data(dir):
     )
 
 
-def get_data_from_directory(dir, parser):
+def get_data_from_directory(dir, parser, is_data_file):
     all_data = []
     for filename in os.listdir(dir):
-        if not is_game_data(filename):
+        if not is_data_file(filename):
+            print(f"Skipping {filename}")
             continue
 
         full_path = os.path.join(dir, filename)
@@ -46,6 +47,9 @@ def get_data_from_directory(dir, parser):
 
 def is_game_data(filename):
     return re.match("[\d]*\\.txt", filename)
+
+def is_transition(filename):
+    return re.match("-?[\d]*_-?[\d]*[_A-Z]*.txt", filename)
 
 def parse_assignment_line(line):
     """
@@ -77,12 +81,14 @@ def category_parser(lines, *args):
     return cat
 
 def transition_parser(lines, filename):
-    trans = Transition()
-    line = lines[0]
-    (newActor, newTarget, autoDecaySecs,
-     actorMinUseFraction, targetMinUseFraction,
-     reverseUseAction, reverseUseTargetFlag,
-    move, desiredMoveDist) = [t(s) for t,s in zip((int,int,int,float,float,int,int,int),line.split())]
-    print(newTarget)
+    name_data = filename[:-4].split("_")
+    actor = int(name_data[0])
+    target = int(name_data[1])
+    # Should I be collecting the LT/LA postfixes???
+    
+    line_data = lines[0].split(" ")
+    parse_as = [int,int,int,float,float,int,int,int,int]
+    parsed = [parse_as[idx](val) for idx,val in enumerate(line_data)]
+    trans = Transition(actor, target, *parsed)
     return trans
         

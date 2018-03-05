@@ -16,7 +16,7 @@ def describe_categories(data):
 def write_game_data(game_data):
     def write_output(data, name):
         with open(os.path.join('output', '{}.json'.format(name)), "w") as f:
-            f.write(encode(data))
+            f.write(encode(data, unpicklable=False))
         
 
     if not os.path.exists('output'):
@@ -24,10 +24,10 @@ def write_game_data(game_data):
     set_encoder_options('simplejson', sort_keys=True, indent=4)
     write_output(game_data.objects, "objects")
     write_output(game_data.categories, "categories")
+    write_output(game_data.transitions, "transitions")
 
 def get_objects_with_stat(objects, stat):
     return [obj for _, obj in objects.items() if hasattr(obj, stat)]
-        
     
     for id, obj in objects.items():
         if hasattr(obj, stat):
