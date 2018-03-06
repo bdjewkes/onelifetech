@@ -9,11 +9,13 @@ interface ObjectBrowserContainerState { filterKey: string, pageIndex: number }
 export class ObjectBrowserContainer extends React.Component<ObjectBrowserContainerProps, ObjectBrowserContainerState>{
     constructor(props){
         super(props)
-        this.state = { filterKey: "", pageIndex: 0 }
+        this.state = { filterKey: "", pageIndex: 1 }
     }
     
-    // accepts a 0 indexed page number
+    // accepts a 1 indexed page number
     paginate(objs: Object[], per_page: number, index: number): Object[] {
+        // pages are 1 index, correct for 0-indexing
+        index-=1;
         return objs.slice(index * per_page, (index + 1) * per_page)
     }
 
