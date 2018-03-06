@@ -42,7 +42,7 @@ export class ObjectBrowserContainer extends React.Component<ObjectBrowserContain
                 <Input
                     size={"big"}
                     placeholder='Example: Knife'
-                    onChange={(e,d) => this.setState({ filterKey: d.value, pageIndex:0 })
+                    onChange={(e,d) => this.setState({ filterKey: d.value, pageIndex: 1 })
 }
                 />
                 <Pagination
