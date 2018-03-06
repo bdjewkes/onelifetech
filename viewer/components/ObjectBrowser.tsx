@@ -1,57 +1,89 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { Table, Input } from 'semantic-ui-react'
+import { Table, Input, Pagination } from 'semantic-ui-react'
 import { Object } from "../types"
 
 interface ObjectBrowserContainerProps { objectMap: {[key: number]: Object } }
-interface ObjectBrowserContainerState { filterKey: string }
+interface ObjectBrowserContainerState { filterKey: string, pageIndex: number }
 
 export class ObjectBrowserContainer extends React.Component<ObjectBrowserContainerProps, ObjectBrowserContainerState>{
     constructor(props){
         super(props)
-        this.state = { filterKey: "" }
+        this.state = { filterKey: "", pageIndex: 0 }
     }
     
-    inputOnChange(e, data) {
-        this.setState({ filterKey: data.value})
+    // accepts a 0 indexed page number
+    paginate(objs: Object[], per_page: number, index: number): Object[] {
+        return objs.slice(index * per_page, (index + 1) * per_page)
     }
+
+    objectsPerPage = 20;
     
     render(){
         let keys = Object.keys(this.props.objectMap)
         let objs = keys
-            .filter(k => this.state.filterKey == "" || this.props.objectMap[k].name.includes(this.state.filterKey))
+            .filter((k) =>
+                this.state.filterKey == ""
+                || this.props.objectMap[k].name.toUpperCase().includes(this.state.filterKey.toUpperCase())
+            )
             .map((k)=> this.props.objectMap[k])
-        if(this.state.filterKey){
-            objs = objs
-        }
+            .sort((a,b) => {
+                if(a.name < b.name) return -1;
+                if(a.name > b.name) return 1;
+                return 0
+            });
+
+        let paged_objs = this.paginate(objs, this.objectsPerPage, this.state.pageIndex);
+
         return (
             <span>
                 <Input
                     size={"big"}
                     placeholder='Example: Knife'
-                    onChange={(e,d) => this.inputOnChange(e,d) }
+                    onChange={(e,d) => this.setState({ filterKey: d.value, pageIndex:0 })
+}
                 />
-                <ObjectBrowserTable objects={objs}/>
+                <Pagination
+                    totalPages={Math.floor(objs.length/this.objectsPerPage)}
+                    onPageChange={(e,{ activePage })=> this.setState({ pageIndex: Number(activePage) }) }
+                    defaultActivePage={1}
+                    firstItem={null}
+                    lastItem={null}
+                    pointing
+                    secondary
+                />
+                <ObjectBrowserTable
+                    getObjectById={(id) => this.props.objectMap[id] }
+                    objects={paged_objs}/>
             </span>
         )
     }
 }
 
 
-interface ObjectBrowserTableProps{ objects: Object[] } 
-
-
+interface ObjectBrowserTableProps{
+    objects: Object[];
+    getObjectById: (id: number) => Object;
+} 
 interface ColumnRenderer { key: string, name: string, renderer: Function }
-const Identity = (e) => <span>{e}</span>;
-const Image = (e) => <img src={e}/>
 
 const ObjectBrowserTable = (props: ObjectBrowserTableProps) => {
+    let Identity = (e: any) => <span>{e}</span>;
+    let Image = (e: any) => <img src={e}/>
+    let ObjectIdArray = (ids: number[]) => {
+        if(!ids) return <span/>
+        return ids.map(e=>
+            <span key={`cat-${e}`}>
+                {props.getObjectById(e).name}<br/>
+            </span>)
+    }
     let columns: ColumnRenderer[] = [
         { key: "id", name: "Object Id", renderer: Identity },
         { key: "sprite", name: "Sprite", renderer: Image },
         { key: "name", name: "Name", renderer: Identity },
         { key: "heatValue", name: "Heat Output", renderer: Identity },
-        { key: "rValue", name: "Insulation", renderer: Identity }
+        { key: "rValue", name: "Insulation", renderer: Identity },
+        { key: "category_members", name: "Category", renderer: ObjectIdArray }
     ];
 
     
