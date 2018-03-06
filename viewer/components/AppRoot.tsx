@@ -12,7 +12,7 @@ interface AppRootState
 
 export class AppRoot extends React.Component<{}, AppRootState>{
     componentDidMount(){
-        var json = fetch("dist/ohol.json")
+        var json = fetch("ohol.json")
             .then(response => response.json())
             .then(json => {
                 let state: AppRootState = {

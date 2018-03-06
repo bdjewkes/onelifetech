@@ -43,7 +43,7 @@ interface ObjectBrowserTableProps{ objects: Object[] }
 
 interface ColumnRenderer { key: string, name: string, renderer: Function }
 const Identity = (e) => <span>{e}</span>;
-const Image = (e) => <img src={"dist/"+e}/>
+const Image = (e) => <img src={e}/>
 
 const ObjectBrowserTable = (props: ObjectBrowserTableProps) => {
     let columns: ColumnRenderer[] = [
